@@ -1,95 +1,82 @@
-import Image from "next/image";
-import styles from "./page.module.css";
+"use client";
+
+import { useState } from "react";
+
+import { Polyline } from "@/components/polyline";
+
+import { APIProvider, Map, useMap } from "@vis.gl/react-google-maps";
+
+// import styles from "./page.module.css";
+
+const Coords = (lat, lng) => {
+  return { lat, lng };
+};
+
+const flightPlanCoordinates = [
+  Coords(36.044214, -115.053694),
+  Coords(36.04793050876601, -115.05409838558803),
+];
+
+const Button = () => {
+  const map = useMap();
+
+  const onButtonClick = () => {
+    map.setZoom(17);
+    map.setCenter({ lat: 36.046253, lng: -115.053397 });
+  };
+
+  return <button onClick={onButtonClick}>Center</button>;
+};
+
+const HOCPolyline = ({ onClick }) => {
+  const handler = (event) => {
+    const lat = event.latLng.lat();
+    const lng = event.latLng.lng();
+    return { lat, lng };
+  };
+
+  return (
+    <Polyline
+      path={flightPlanCoordinates}
+      color="black"
+      strokeWeight={8}
+      strokeOpacity={0.5}
+      onClick={(event) => {
+        onClick(handler(event));
+      }}
+    />
+  );
+};
 
 export default function Home() {
+  const [coords, setCoords] = useState(Coords(null, null));
+
+  const setCoordsHandler = ({ lat, lng }) => {
+    setCoords(() => {
+      return { lat, lng };
+    });
+  };
+
   return (
-    <main className={styles.main}>
-      <div className={styles.description}>
-        <p>
-          Get started by editing&nbsp;
-          <code className={styles.code}>src/app/page.js</code>
-        </p>
-        <div>
-          <a
-            href="https://vercel.com?utm_source=create-next-app&utm_medium=appdir-template&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            By{" "}
-            <Image
-              src="/vercel.svg"
-              alt="Vercel Logo"
-              className={styles.vercelLogo}
-              width={100}
-              height={24}
-              priority
-            />
-          </a>
-        </div>
+    <div>
+      <APIProvider apiKey={process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY}>
+        <Map
+          style={{ width: "1000px", height: "500px" }}
+          defaultCenter={{ lat: 36.046253, lng: -115.053397 }}
+          mapId="DEMO_MAP_ID"
+          mapTypeId="satellite"
+          tilt={0}
+          defaultZoom={16}
+          gestureHandling={"greedy"}
+          disableDefaultUI={true}
+        >
+          <HOCPolyline onClick={setCoordsHandler} />
+        </Map>
+        <Button />
+      </APIProvider>
+      <div>
+        {coords.lat}, {coords.lng}
       </div>
-
-      <div className={styles.center}>
-        <Image
-          className={styles.logo}
-          src="/next.svg"
-          alt="Next.js Logo"
-          width={180}
-          height={37}
-          priority
-        />
-      </div>
-
-      <div className={styles.grid}>
-        <a
-          href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template&utm_campaign=create-next-app"
-          className={styles.card}
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <h2>
-            Docs <span>-&gt;</span>
-          </h2>
-          <p>Find in-depth information about Next.js features and API.</p>
-        </a>
-
-        <a
-          href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template&utm_campaign=create-next-app"
-          className={styles.card}
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <h2>
-            Learn <span>-&gt;</span>
-          </h2>
-          <p>Learn about Next.js in an interactive course with&nbsp;quizzes!</p>
-        </a>
-
-        <a
-          href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template&utm_campaign=create-next-app"
-          className={styles.card}
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <h2>
-            Templates <span>-&gt;</span>
-          </h2>
-          <p>Explore starter templates for Next.js.</p>
-        </a>
-
-        <a
-          href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template&utm_campaign=create-next-app"
-          className={styles.card}
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <h2>
-            Deploy <span>-&gt;</span>
-          </h2>
-          <p>
-            Instantly deploy your Next.js site to a shareable URL with Vercel.
-          </p>
-        </a>
-      </div>
-    </main>
+    </div>
   );
 }
